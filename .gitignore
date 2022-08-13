@@ -1,0 +1,11 @@
+Stereo3DNoDataSet.zip
+Stereo3DCodeOnly.zip
+Training
+_pycache_/
+.idea/
+.pyc
+.vscde/
+
+*.pth 
+*.pyc
+
