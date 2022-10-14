@@ -48,30 +48,30 @@ class BasicBlock(nn.Module):
         f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
         f.write("BasicBlock_Forward \n")
         f.close()
-        print("shape of initial input basicblock", x.shape)
+        # print("shape of initial input basicblock", x.shape)
         residual = x
-        print("the shape of initial basicblock", x.shape)
+        # print("the shape of initial basicblock", x.shape)
 
-        print("shape of 1st input basicblock", x.shape)
+        # print("shape of 1st input basicblock", x.shape)
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
-        print("shape of 1st output basicblock", out.shape) # first block of ResNet consisting of conv, batchnorm,relu. 
+        # print("shape of 1st output basicblock", out.shape) # first block of ResNet consisting of conv, batchnorm,relu. 
 
-        print("shape of 2nd input basicblock", out.shape)
+        # print("shape of 2nd input basicblock", out.shape)
         out = self.conv2(out) #2nd 3x3 conv
         out = self.bn2(out) #2nd batchnorm
-        print("shape of 2nd output basicblock", out.shape)
+        # print("shape of 2nd output basicblock", out.shape)
 
         if self.downsample is not None: # if downsampling is non-zero
-            print("shape before downsample basicblock", x.shape)
+            # print("shape before downsample basicblock", x.shape)
             residual = self.downsample(x) # downsampling of x is assigned to residual
-            print("shape after downsample basicblock", residual.shape)
+            # print("shape after downsample basicblock", residual.shape)
 
-        print("shape of 3rd input basicblock", out.shape)
+        # print("shape of 3rd input basicblock", out.shape)
         out += residual #output of last downsampling output is assigned to out + out (i.e skip connection)
         out = self.relu(out) # activation function ReLU
-        print("shape of 3rd output basicblock", out.shape)
+        # print("shape of 3rd output basicblock", out.shape)
 
         return out
 
@@ -100,35 +100,35 @@ class Bottleneck(nn.Module):
         f.write("Bottleneck_Forward \n")
         f.close()
         residual = x
-        print("initial output of bottleneck", residual.shape)
+        # print("initial output of bottleneck", residual.shape)
 
-        print("1st input of bottleneck", out.shape)
+        # print("1st input of bottleneck", out.shape)
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
-        print("1st output of bottleneck", out.shape)
+        # print("1st output of bottleneck", out.shape)
 
 
-        print("2nd input of bottleneck", out.shape)
+        # print("2nd input of bottleneck", out.shape)
         out = self.conv2(out)
         out = self.bn2(out)
         out = self.relu(out)
-        print("2nd output of bottleneck", out.shape)
+        # print("2nd output of bottleneck", out.shape)
 
-        print("3rd input of bottleneck", out.shape)
+        # print("3rd input of bottleneck", out.shape)
         out = self.conv3(out)
         out = self.bn3(out)
-        print("3rd output of bottleneck", out.shape)
+        # print("3rd output of bottleneck", out.shape)
 
         if self.downsample is not None:
-            print("shape before downsample bottleneck", x.shape)
+            # print("shape before downsample bottleneck", x.shape)
             residual = self.downsample(x)
-            print("shape before downsample bottleneck", residual.shape)
+            # print("shape before downsample bottleneck", residual.shape)
 
-        print("4th input after downsample bottleneck", residual.shape)
+        # print("4th input after downsample bottleneck", residual.shape)
         out += residual
         out = self.relu(out)
-        print("4th output shape after activation bottlneck", out.shape)
+        # print("4th output shape after activation bottlneck", out.shape)
 
         return out
 
@@ -244,26 +244,26 @@ class ResNet(nn.Module):
         f.write("Resnet_Forward \n")
         f.close()
         outs = []
-        print("shape of img_batch before conv1", len(outs))
+        # print("shape of img_batch before conv1", len(outs))
         x = self.conv1(img_batch)
-        print("shape of img_batch after conv1", x.shape)
+        # print("shape of img_batch after conv1", x.shape)
         x = self.bn1(x)
-        print("shape of img_batch after bn1", x.shape)
+        # print("shape of img_batch after bn1", x.shape)
         x = self.relu(x)
-        print("shape of img_batch after relu", x.shape)
+        # print("shape of img_batch after relu", x.shape)
         if -1 in self.out_indices:
             outs.append(x) #output of one block of conv bn and relu into 1 list
         x = self.maxpool(x)
-        print("shape of img_batch after maxpool", x.shape)
+        # print("shape of img_batch after maxpool", x.shape)
         for i in range(self.num_stages): #unclear
             layer = getattr(self, f"layer{i + 1}") # high level, this for loop gathers the attributes of one layer (mentionned above) and assigns it to layer and projects it onto x
             x = layer(x)
-            print("appended output for the entire layer:", x.shape)
+            # print("appended output for the entire layer:", x.shape)
             if i in self.out_indices:
                 outs.append(x) # saving different feature maps from different stages 
 
         #print(x.shape)
-        print("final output outs", len(outs))
+        # print("final output outs", len(outs))
         return outs
 
 

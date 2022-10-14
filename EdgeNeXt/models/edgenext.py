@@ -7,13 +7,18 @@ from .conv_encoder import ConvEncoder
 
 
 class EdgeNeXt(nn.Module):
-    def __init__(self, in_chans=3, num_classes=1000,
+    def __init__(self, in_chans=3, num_classes=2, # changed from 3 to 2
                  depths=[3, 3, 9, 3], dims=[24, 48, 88, 168],
                  global_block=[0, 0, 0, 3], global_block_type=['None', 'None', 'None', 'SDTA'],
                  drop_path_rate=0., layer_scale_init_value=1e-6, head_init_scale=1., expan_ratio=4,
                  kernel_sizes=[7, 7, 7, 7], heads=[8, 8, 8, 8], use_pos_embd_xca=[False, False, False, False],
                  use_pos_embd_global=False, d2_scales=[2, 3, 4, 5], **kwargs):
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("EdgeNext __init__ \n")
+        f.close()  
         super().__init__()
+        for i, v in kwargs.items():
+            print ("    ", i, ": ", v)
         for g in global_block_type:
             assert g in ['None', 'SDTA']
         if use_pos_embd_global:
@@ -26,7 +31,7 @@ class EdgeNeXt(nn.Module):
             LayerNorm(dims[0], eps=1e-6, data_format="channels_first")
         )
         self.downsample_layers.append(stem)
-        for i in range(3):
+        for i in range(2): # changed from 3 to 2
             downsample_layer = nn.Sequential(
                 LayerNorm(dims[i], eps=1e-6, data_format="channels_first"),
                 nn.Conv2d(dims[i], dims[i + 1], kernel_size=2, stride=2),
@@ -36,7 +41,7 @@ class EdgeNeXt(nn.Module):
         self.stages = nn.ModuleList()  # 4 feature resolution stages, each consisting of multiple residual blocks
         dp_rates = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
         cur = 0
-        for i in range(4):
+        for i in range(3): #changed from 4 to 3
             stage_blocks = []
             for j in range(depths[i]):
                 if j > depths[i] - global_block[i] - 1:
@@ -53,15 +58,19 @@ class EdgeNeXt(nn.Module):
 
             self.stages.append(nn.Sequential(*stage_blocks))
             cur += depths[i]
+            # self.outs = torch.conv2d(dims[3], 1024, kernel_size=1)
         self.norm = nn.LayerNorm(dims[-1], eps=1e-6)  # Final norm layer
-        self.head = nn.Linear(dims[-1], num_classes)
+        # self.head = nn.Linear(dims[-1], num_classes)  #commented out for loading when backbone is pretrained
 
         self.apply(self._init_weights)
-        self.head_dropout = nn.Dropout(kwargs["classifier_dropout"])
-        self.head.weight.data.mul_(head_init_scale)
-        self.head.bias.data.mul_(head_init_scale)
+        # self.head_dropout = nn.Dropout(kwargs["classifier_dropout"]) #commented out for loading when backbone is pretrained
+        # self.head.weight.data.mul_(head_init_scale) #commented out for loading when backbone is pretrained
+        # self.head.bias.data.mul_(head_init_scale) #commented out for loading when backbone is pretrained
 
     def _init_weights(self, m):  # TODO: MobileViT is using 'kaiming_normal' for initializing conv layers
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("EdgeNext_init_weights \n")
+        f.close() 
         if isinstance(m, (nn.Conv2d, nn.Linear)):
             trunc_normal_(m.weight, std=.02)
             if m.bias is not None:
@@ -71,26 +80,55 @@ class EdgeNeXt(nn.Module):
             nn.init.constant_(m.weight, 1.0)
 
     def forward_features(self, x):
+        outs=[]
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("EdgeNext_forward_features \n")
+        f.close()
+        # print("EdgeNext_forward_features \n")        
         x = self.downsample_layers[0](x)
-        print('shape of first x after downsample in forward_features', x.shape)
         x = self.stages[0](x)
-        print('shape of first x after self stages in forward_features', x.shape)
+        outs.append(x)
+        # print(self.pos_embd)
         if self.pos_embd:
-            B, C, H, W = x.shape
-            x = x + self.pos_embd(B, H, W)
-            print('shape of x in if loop for pos_embd in forward_features', x.shape)
-        for i in range(1, 4):
+            B, C, H, W = x.shape # shapes of x: B: batch size, C: num of channels: H: Height, W: Width
+            x = x + self.pos_embd(B, C, H, W)
+            # print('shape of x in if loop for pos_embd in forward_features', x.shape)
+        for i in range(1, 3):
             x = self.downsample_layers[i](x)
-            print('shape of x in if loop after downsample in forward_features', x.shape)
             x = self.stages[i](x)
-            print('shape of x in for loop after self stages in forward_features', x.shape)
+            outs.append(x)
 
-        return self.norm(x.mean([-2, -1]))  # Global average pooling, (N, C, H, W) -> (N, C)
+
+        # print('shape of x in for loop after self stages in forward_features', x.shape)
+        return outs
+        # return x 
+        # return self.norm(x.mean([-2, -1]))  # Global average pooling, (N, C, H, W) -> (N, C)
 
     def forward(self, x):
-        print("initial shape of x in forward pass", x.shape)
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("EdgeNext forward \n")
+        f.close()
+        # print("EdgeNext_forward \n")    
+        # import pdb
+        # pdb.set_trace()
+        # print("initial shape of x in forward pass", x.shape)
         x = self.forward_features(x)
-        print('shape of x after applying forwrd_features class in forward pass', x.shape)
-        x = self.head(self.head_dropout(x))
-        print('shape of x in forward pass', x.shape)
+
+        # print("x1",x.shape)
+        # import pdb
+        # pdb.set_trace()
+
+        # x_needed = x
+        # import pdb
+        # pdb.set_trace() 
+
+        # x = self.norm(x.mean([-2, -1])) # reduces torch.Size([24, 304, 9, 40]) to torch.Size([24, 304])
+        # import pdb
+        # pdb.set_trace()
+
+        # print('shape of x after applying forwrd_features class in forward pass', x.shape)
+        # x = self.head(self.head_dropout(x))
+        # import pdb
+        # pdb.set_trace()
+        # print('shape of x in forward pass', x.shape)
         return x

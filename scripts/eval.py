@@ -4,6 +4,7 @@ import fire
 import os
 import copy
 import torch
+import wandb
 
 from _path_init import *
 from visualDet3D.networks.utils.registry import DETECTOR_DICT, DATASET_DICT, PIPELINE_DICT
@@ -15,12 +16,16 @@ def main(config:str="config/config.py",
         gpu:int=0, 
         checkpoint_path:str="retinanet_79.pth",
         split_to_test:str='validation'):
-    # Read Config
+
+    wandb.init(project='YoloS3DN_Edgnext_Small_bn_hs_Pretrained_Network__ChenSplit_PC_Supervision_Test_Val')    # Read Config
     cfg = cfg_from_file(config)
     
     # Force GPU selection in command line
     cfg.trainer.gpu = gpu
     torch.cuda.set_device(cfg.trainer.gpu)
+
+    wandb.config.update(cfg)
+
     
     # Set up dataset and dataloader
     is_test_train = split_to_test == 'training'
@@ -51,5 +56,6 @@ def main(config:str="config/config.py",
     # Run evaluation
     evaluate_detection(cfg, detector, dataset, None, 0, result_path_split=split_to_test)
     print('finish')
+    wandb.finish()
 if __name__ == '__main__':
     fire.Fire(main)

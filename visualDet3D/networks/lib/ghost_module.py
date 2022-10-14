@@ -45,13 +45,13 @@ class GhostModule(nn.Module):
         f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
         f.write("GhostModule_forward \n")
         f.close()
-        print("initial shape of input into ghost module x", x.shape)
+        # print("initial shape of input into ghost module x", x.shape)
         x1 = self.primary_conv(x)
-        print("shape of x1 after primary conv", x1.shape)
+        # print("shape of x1 after primary conv", x1.shape)
         x2 = self.cheap_operation(x1)
-        print("shape of x2 after Ghost Cheap Operation", x2.shape)
+        # print("shape of x2 after Ghost Cheap Operation", x2.shape)
         out = torch.cat([x1,x2], dim=1)
-        print("shape of concactenated Ghost output", out.shape)
+        # print("shape of concactenated Ghost output", out.shape)
         return out[:,:self.oup,:,:]
 
 class ResGhostModule(GhostModule):
@@ -63,6 +63,8 @@ class ResGhostModule(GhostModule):
         assert(ratio > 2)
         super(ResGhostModule, self).__init__(inp, oup-inp, kernel_size, ratio-1, dw_size, relu=relu, stride=stride)
         self.oup = oup
+        # import pdb
+        # pdb.set_trace()
         if stride > 1:
             self.downsampling = nn.AvgPool2d(kernel_size=stride, stride=stride) #same as before, if stride is more than 1 downsample
         else:
@@ -72,15 +74,25 @@ class ResGhostModule(GhostModule):
         f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
         f.write("ResGhostModule_forward \n")
         f.close()
-        print("initial shape of input into ResGhost module x", x.shape)
+        # import pdb
+        # pdb.set_trace()
+        # print("initial shape of input into ResGhost module x", x.shape)
         x1 = self.primary_conv(x)
-        print("shape of x1 after primary conv in ResGhost", x1.shape)
+        # import pdb
+        # pdb.set_trace()        
+        # print("shape of x1 after primary conv in ResGhost", x1.shape)
         x2 = self.cheap_operation(x1)
-        print("shape of x2 after ResGhost Cheap Operation", x2.shape)
+        # import pdb
+        # pdb.set_trace()
+        # print("shape of x2 after ResGhost Cheap Operation", x2.shape)
 
         if not self.downsampling is None:
             x = self.downsampling(x)
-            print("initial shape of input iafter downsampling x", x.shape)
+            # import pdb
+            # pdb.set_trace()
+            # print("initial shape of input iafter downsampling x", x.shape)
         out = torch.cat([x, x1, x2], dim=1)
-        print("shape of concactenated ResGhost output", out.shape)
+        # import pdb
+        # pdb.set_trace()        
+        # print("shape of concactenated ResGhost output", out.shape)
         return out[:,:self.oup,:,:]

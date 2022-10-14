@@ -6,6 +6,7 @@ import cv2
 from copy import deepcopy
 import skimage.measure
 import torch
+import random
 
 from _path_init import *
 from visualDet3D.networks.heads.anchors import Anchors
@@ -197,6 +198,13 @@ def main(config:str="config/config.py"):
             }
 
     train_names, val_names = process_train_val_file(cfg)
+    if cfg.data.shuffle_split:
+        all_names = train_names + val_names
+        random.shuffle(all_names)
+        train_names = all_names[:3712]
+        val_names = all_names[3712:]
+        np.savetxt(cfg.data.val_split_file, np.array(val_names), fmt='%s')
+        np.savetxt(cfg.data.train_split_file, np.array(train_names), fmt='%s')         
     read_one_split(cfg, train_names, data_root_dir, output_dict, 'training', time_display_inter)
     output_dict = {
                 "calib": True, #same here

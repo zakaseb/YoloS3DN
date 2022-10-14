@@ -1,0 +1,9 @@
+# config.yaml
+program: scripts/train.py
+method: grid
+name: ablation
+parameters:
+  config:
+    value: "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/config/config_stereo_3d.py"
+  optimizer: 
+    values: ['sgd', 'adamw']

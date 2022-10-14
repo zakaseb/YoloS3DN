@@ -146,13 +146,14 @@ def evaluate(data_loader, model, device, use_amp=False):
         # Compute output
         if use_amp:
             with torch.cuda.amp.autocast():
+               
                 output = model(images)
-                loss = criterion(output, target)
+                loss = criterion(output[0], target)
         else:
             output = model(images)
-            loss = criterion(output, target)
+            loss = criterion(output[0], target)
 
-        acc1, acc5 = accuracy(output, target, topk=(1, 5))
+        acc1, acc5 = accuracy(output[0], target, topk=(1, 5))
 
         batch_size = images.shape[0]
         metric_logger.update(loss=loss.item())

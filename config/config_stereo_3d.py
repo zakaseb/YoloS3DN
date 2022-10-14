@@ -8,7 +8,7 @@ cfg.obj_types = ['Car', 'Pedestrian']
 ## trainer
 trainer = edict(
     gpu = 0,
-    max_epochs = 80, # for validation epoch 50 is enough
+    max_epochs = 50, # for validation epoch 50 is enough
     disp_iter = 100,
     save_iter = 5,
     test_iter = 10,
@@ -25,6 +25,7 @@ path.data_path = "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Training" # used in
 path.test_path = "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Testing" # used in visualDet3D/data/.../dataset
 path.visualDet3D_path = "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/visualDet3D" # The path should point to the inner subfolder
 path.project_path = "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Project" # or other path for pickle files, checkpoints, tensorboard logging and output files.
+path.pretrained_checkpoint = '/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/ckpts/checkpts/YoloS3DN_Edgnext_Small_bn_hs_Pretrained_Backbone_17epochs_Nottrained_Network__ChenSplit_NotShuffled.pth' # /home/zakaseb/Thesis/YoloStereo3D/Stereo3D/ckpts/checkpts/YoloS3DN_Edgnext_Small__Pretrained_Backbone_17epochs_NotPretrained_Network__ChenSplit_NotShuffled.pth for SMALL. /home/zakaseb/Thesis/YoloStereo3D/Stereo3D/ckpts/checkpts/YoloS3DN_Edgnext_Small_bn_hs_Pretrained_Backbone_17epochs_Nottrained_Network__ChenSplit_NotShuffled.pth for SMALL BN_HS
 if not os.path.isdir(path.project_path):
     os.mkdir(path.project_path)
 path.project_path = os.path.join(path.project_path, 'Stereo3D')
@@ -63,26 +64,32 @@ optimizer = edict(
     clipped_gradient_norm = 0.1
 )
 cfg.optimizer = optimizer
+
 ## scheduler
 scheduler = edict(
     type_name = 'CosineAnnealingLR',
     keywords = edict(
-        T_max     = cfg.trainer.max_epochs,
-        eta_min   = 5e-6,
+        T_max     = cfg.trainer.max_epochs, # commented out for MultiStepLR
+        eta_min   = 5e-6, # commented out for MultiStepLR
+        # milestones = [30,80] # learning rate will change at 30th and 80th iteration. Only for MultiStepLR
+        # multiplier = 1.0, # Gradual Warmup: multiplier: target learning rate = base lr * multiplier if multiplier > 1.0. if multiplier = 1.0, lr starts from 0 and ends up with the base_lr.
+        # total_epoch = 20 #Gradual Warmup: total_epoch: target learning rate is reached at total_epoch, gradually
+        # step_size = 25 #  StepLR: Period of learning rate decay.
     )
 )
 cfg.scheduler = scheduler
 
 ## data
 data = edict(
-    batch_size = 12,
+    batch_size =8,
     num_workers = 4,
     rgb_shape = (288, 1280, 3),
     train_dataset = "KittiStereoDataset",
     val_dataset   = "KittiStereoDataset",
     test_dataset  = "KittiStereoTestDataset",
-    train_split_file = os.path.join(cfg.path.visualDet3D_path, 'data', 'kitti', 'test_split', 'train.txt'),
-    val_split_file   = os.path.join(cfg.path.visualDet3D_path, 'data', 'kitti', 'test_split', 'val.txt'),
+    train_split_file = os.path.join(cfg.path.visualDet3D_path, 'data', 'kitti', 'chen_split', 'train.txt'), # if shuffle split true use test_split
+    val_split_file   = os.path.join(cfg.path.visualDet3D_path, 'data', 'kitti', 'chen_split', 'val.txt'),
+    shuffle_split = False # True, dataset splits are shuffled, False they are not
 )
 
 data.augmentation = edict(
@@ -111,15 +118,50 @@ cfg.data = data
 detector = edict()
 detector.obj_types = cfg.obj_types
 detector.name = 'Stereo3D'
+
+# detector.backbone = edict(
+#     depth=34,
+#     pretrained=True,
+#     frozen_stages=-1,
+#     num_stages=3,
+#     out_indices=(0, 1, 2),
+#     norm_eval=True,
+#     dilations=(1, 1, 1),
+# )
+
+
 detector.backbone = edict(
-    depth=34,
-    pretrained=True,
-    frozen_stages=-1,
-    num_stages=3,
-    out_indices=(0, 1, 2),
-    norm_eval=True,
-    dilations=(1, 1, 1),
-)
+    dims=[48, 96, 160, 304],
+    expan_ratio=4,
+    global_block=[0, 1, 1, 1],
+    global_block_type=['None', 'SDTA', 'SDTA', 'SDTA'],
+    use_pos_embd_xca=[False, True, False, False],
+    kernel_sizes=[3, 5, 7, 9],
+    d2_scales=[2, 2, 3, 4],
+    classifier_dropout=0.0,
+    edgenext_variant='small_bn_hs', #options = ['small', 'small_bn_hs']
+    pretrained=False,
+    pretrained_edgenext_path='/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/EdgeNeXt/checkpoint-small-17-epochs.pth', # /home/zakaseb/Thesis/YoloStereo3D/Stereo3D/EdgeNeXt/checkpoint-edgnext-bn-hs-17-epochs.pth for SMALL BN HS, /home/zakaseb/Thesis/YoloStereo3D/Stereo3D/EdgeNeXt/checkpoint-small-17-epochs.pth for SMALL 
+    rand_init_model_except_bb=True # False for exp1 and True for exp2
+    )
+
+# detector.backbone = edict(
+#     dims=[48, 96, False
+#     global_block=[0, 1, 1, 1],
+#     global_block_type=['None', 'SDTA', 'SDTA', 'SDTA'],
+#     use_pos_embd_xca=[False, True, False, False],
+#     kernel_sizes=[3, 5, 7, 9],
+#     d2_scales=[2, 2, 3, 4],
+#     classifier_dropout=0.0,
+#     depth=34,
+#     pretrained=True,
+#     frozen_stages=-1,
+#     num_stages=3,
+#     out_indices=(0, 1, 2),
+#     norm_eval=True,
+#     dilations=(1, 1, 1),
+#     )
+
 head_loss = edict(
     fg_iou_threshold = 0.5,
     bg_iou_threshold = 0.4,

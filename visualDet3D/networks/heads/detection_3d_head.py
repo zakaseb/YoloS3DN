@@ -16,6 +16,9 @@ from visualDet3D.networks.utils.utils import calc_iou, BackProjection, BBox3dPro
 from visualDet3D.networks.lib.fast_utils.hill_climbing import post_opt
 from visualDet3D.networks.utils.utils import ClipBoxes
 from visualDet3D.networks.lib.blocks import AnchorFlatten, ConvBnReLU
+import EdgeNeXt
+from EdgeNeXt.models.edgenext import EdgeNeXt # new import for edgenext
+from EdgeNeXt.models.model import edgenext_small, edgenext_xx_small
 from visualDet3D.networks.backbones.resnet import BasicBlock
 from visualDet3D.networks.lib.ops import ModulatedDeformConvPack
 from visualDet3D.networks.lib.look_ground import LookGround
@@ -32,7 +35,10 @@ class AnchorBasedDetection3DHead(nn.Module):
                        read_precompute_anchor:bool=True):
         super(AnchorBasedDetection3DHead, self).__init__()
         self.anchors = Anchors(preprocessed_path=preprocessed_path, readConfigFile=read_precompute_anchor, **anchors_cfg) #anchors are to be imported from anchors class in anchors.py
-        
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_Init \n")
+        f.close()
+
         self.num_classes = num_classes
         self.num_regression_loss_terms=num_regression_loss_terms
         self.decode_before_loss = getattr(loss_cfg, 'decode_before_loss', False)
@@ -53,6 +59,9 @@ class AnchorBasedDetection3DHead(nn.Module):
                           cls_feature_size:int=1024,
                           reg_feature_size:int=1024,
                           **kwargs):
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_Init_layers \n")
+        f.close()
 
         self.cls_feature_extraction = nn.Sequential( # classification branch feature extraction
             nn.Conv2d(num_features_in, cls_feature_size, kernel_size=3, padding=1),
@@ -84,17 +93,24 @@ class AnchorBasedDetection3DHead(nn.Module):
         self.reg_feature_extraction[-2].bias.data.fill_(0)
 
     def forward(self, inputs):
-        
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_forward \n")
+        f.close()
         #print the shape of this, get familiar if 4 real is the resnet feature map 
         cls_preds = self.cls_feature_extraction(inputs['features']) #filling class and regression prediction from the aforementionned collected features
-        print('shape of class preds', cls_preds.shape)
+        # print('shape of class preds', cls_preds.shape)
         reg_preds = self.reg_feature_extraction(inputs['features'])
-        print('shape of reg preds', cls_preds.shape)
-        
+        # print('shape of reg preds', cls_preds.shape)
+        # import pdb
+        # pdb.set_trace()
 
         return cls_preds, reg_preds
         
     def build_loss(self, focal_loss_gamma=0.0, balance_weight=[0], L1_regression_alpha=9, **kwargs): #this is to build and define specific loss functions needed 
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_build_loss \n")
+        f.close()
+
         self.focal_loss_gamma = focal_loss_gamma
         self.register_buffer("balance_weights", torch.tensor(balance_weight, dtype=torch.float32))
         self.loss_cls = SigmoidFocalLoss(gamma=focal_loss_gamma, balance_weights=self.balance_weights) #sigmoid loss from losses.py
@@ -116,6 +132,10 @@ class AnchorBasedDetection3DHead(nn.Module):
             anchor: [N, 4]
             annotation: [num_gt, 4]:
         """
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_assign\n")
+        f.close()
+
         N = anchor.shape[0]
         num_gt = annotation.shape[0]
         assigned_gt_inds = anchor.new_full(
@@ -181,6 +201,9 @@ class AnchorBasedDetection3DHead(nn.Module):
         return return_dict
 
     def _encode(self, sampled_anchors, sampled_gt_bboxes, selected_anchors_3d):
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_encode \n")
+        f.close()
         assert sampled_anchors.shape[0] == sampled_gt_bboxes.shape[0]
 
         sampled_anchors = sampled_anchors.float()
@@ -224,6 +247,9 @@ class AnchorBasedDetection3DHead(nn.Module):
 
     def _decode(self, boxes, deltas, anchors_3d_mean_std, label_index, alpha_score):
         std = torch.tensor([0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 1, 1, 1, 1, 1, 1], dtype=torch.float32, device=boxes.device)
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_decode \n")
+        f.close()
         widths  = boxes[..., 2] - boxes[..., 0]
         heights = boxes[..., 3] - boxes[..., 1]
         ctr_x   = boxes[..., 0] + 0.5 * widths
@@ -274,6 +300,9 @@ class AnchorBasedDetection3DHead(nn.Module):
         """
             Pseudo sampling
         """
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_sample \n")
+        f.close()
         pos_inds = torch.nonzero(
                 assignment_result['assigned_gt_inds'] > 0, as_tuple=False
             ).unsqueeze(-1).unique()
@@ -299,7 +328,9 @@ class AnchorBasedDetection3DHead(nn.Module):
         return return_dict
 
     def _post_process(self, scores, bboxes, labels, P2s):
-        
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_post_process \n")
+        f.close()
         N = len(scores)
         bbox2d = bboxes[:, 0:4]
         bbox3d = bboxes[:, 4:] #[cx, cy, z, w, h, l, alpha]
@@ -315,6 +346,9 @@ class AnchorBasedDetection3DHead(nn.Module):
         return scores, bboxes, labels
 
     def get_anchor(self, img_batch, P2): #used in yolostereo3d_detector
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_get_anchor \n")
+        f.close()
         is_filtering = getattr(self.loss_cfg, 'filter_anchor', True)
         if not self.training:
             is_filtering = getattr(self.test_cfg, 'filter_anchor', is_filtering)
@@ -328,6 +362,9 @@ class AnchorBasedDetection3DHead(nn.Module):
         return return_dict
 
     def _get_anchor_3d(self, anchors, anchor_mean_std_3d, assigned_labels):
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_get_anchor_3d \n")
+        f.close()
         """
             anchors: [N_pos, 4] only positive anchors
             anchor_mean_std_3d: [N_pos, C, K=6, 2]
@@ -346,7 +383,9 @@ class AnchorBasedDetection3DHead(nn.Module):
         return selected_mask, selected_anchor_3d
 
     def get_bboxes(self, cls_scores, reg_preds, anchors, P2s, img_batch=None):
-        
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_get_bboxes\n")
+        f.close()
         assert cls_scores.shape[0] == 1 # batch == 1
         cls_scores = cls_scores.sigmoid()
 
@@ -365,7 +404,7 @@ class AnchorBasedDetection3DHead(nn.Module):
         anchor_mean_std_3d = anchor_mean_std_3d[useful_mask] #[N, K, 2]
 
         score_thr = getattr(self.test_cfg, 'score_thr', 0.5)
-        max_score, label = cls_score.max(dim=-1) 
+        max_score, label = cls_score.max(dim=-1) #changed from -1 to 0
 
         high_score_mask = (max_score > score_thr)
 
@@ -406,6 +445,9 @@ class AnchorBasedDetection3DHead(nn.Module):
         return max_score, bboxes, label
 
     def loss(self, cls_scores, reg_preds, anchors, annotations, P2s):
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("AnchorBasedDetection3DHead_loss \n")
+        f.close()
         batch_size = cls_scores.shape[0]
 
         anchor = anchors['anchors'][0] #[N, 4]
@@ -420,6 +462,8 @@ class AnchorBasedDetection3DHead(nn.Module):
             alpha_score = cls_scores[j][..., self.num_classes:self.num_classes+1]
 
             # selected by mask
+            # import pdb
+            # pdb.set_trace()
             useful_mask = anchors['mask'][j] #[N]
             anchor_j = anchor[useful_mask]
             anchor_mean_std_3d_j = anchor_mean_std_3d[useful_mask]
@@ -512,6 +556,9 @@ class StereoHead(AnchorBasedDetection3DHead):
                           reg_feature_size:int=1024,
                           **kwargs):
 
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("StereoHead_init_layers \n")
+        f.close()
         self.cls_feature_extraction = nn.Sequential( #building the last layer of the detector which is the head
             nn.Conv2d(num_features_in, cls_feature_size, kernel_size=3, padding=1),
             nn.Dropout2d(0.3),

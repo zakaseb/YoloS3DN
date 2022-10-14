@@ -9,9 +9,9 @@ def _read_imageset_file(path):
     return [int(line) for line in lines]
 
 
-def evaluate(label_path="/home/hins/Desktop/M3D-RPN/data/kitti/training/label_2",
-             result_path="/home/hins/IROS_try/pytorch-retinanet/output/validation/data",
-             label_split_file="val.txt",
+def evaluate(label_path="/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Training/label_2", #changed label path to local instead of author's
+             result_path="/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Project/Stereo3D/output/validation/data", #changed path into local data path instead of author's
+             label_split_file="/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/visualDet3D/data/kitti/chen_split/val.txt", # added path to know which val.txt to use
              current_classes=[0],
              gpu=0):
     cuda.select_device(gpu)

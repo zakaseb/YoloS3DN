@@ -1,5 +1,8 @@
+from calendar import c
 import io as sysio
 import time
+import wandb
+import pandas as pd
 
 import numba
 import numpy as np
@@ -781,10 +784,39 @@ def get_official_eval_result(gt_annos,
             result += print_str(f"bbox AP:{mAPbbox}")
             result += print_str(f"bev  AP:{mAPbev}")
             result += print_str(f"3d   AP:{mAP3d}")
+            
+            cols = [class_to_name[curcls]+' AP(Average Precision)', str(min_overlaps[i, :, j][0]), str(min_overlaps[i, :, j][1]), str(min_overlaps[i, :, j][2])]
+            data = [['bbox AP', float(mAPbbox.split(',')[0]), float(mAPbbox.split(',')[1]), float(mAPbbox.split(',')[2])],
+                ['bev AP', float(mAPbev.split(',')[0]), float(mAPbev.split(',')[1]), float(mAPbev.split(',')[2])],
+                ['3d AP', float(mAP3d.split(',')[0]), float(mAP3d.split(',')[1]), float(mAP3d.split(',')[2])]]
+
             if compute_aos:
                 mAPaos = get_mAP_v2(metrics["bbox"]["orientation"][j, :, i])
                 mAPaos = ", ".join(f"{v:.2f}" for v in mAPaos)
                 result += print_str(f"aos  AP:{mAPaos}")
+                data.append(['aos AP', float(mAPaos.split(',')[0]), float(mAPaos.split(',')[1]), float(mAPaos.split(',')[2])])
+                
+            table = wandb.Table(data=data, columns=cols)
+            wandb.log({class_to_name[curcls]+' AP(Average Precision)@{:.2f}, {:.2f}, {:.2f}'.format(*min_overlaps[i, :, j]): table})
+
+            # wandb.log({
+            #     (f"{class_to_name[curcls]} "
+            #     "AP(Average Precision)@{:.2f}, {:.2f}, {:.2f}".format(*min_overlaps[i, :, j])) :{
+            #         "bbox AP": mAPbbox,
+            #         "bev AP": mAPbev,
+            #         "3d AP": mAP3d,
+            #         "aos AP": mAPaos
+            #     }
+            # })
+            
+            # wandb.log({
+            #         (f"{class_to_name[curcls]} "
+            #         "AP(Average Precision)@{:.2f}, {:.2f}, {:.2f}".format(*min_overlaps[i, :, j])) :{
+            #             "bbox AP": mAPbbox,
+            #             "bev AP": mAPbev,
+            #             "3d AP": mAP3d
+            #         }
+            #     })
 
 
     return result

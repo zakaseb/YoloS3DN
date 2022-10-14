@@ -3,6 +3,7 @@
 """
 
 
+import pdb
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -24,6 +25,7 @@ class CostVolume(nn.Module):
     """
     def __init__(self, max_disp=192, downsample_scale=4, input_features=1024, PSM_features=64):
         super(CostVolume, self).__init__()
+        input_features = 256
         self.max_disp = max_disp
         self.downsample_scale = downsample_scale
         self.depth_channel = int(self.max_disp / self.downsample_scale)
@@ -43,6 +45,9 @@ class CostVolume(nn.Module):
         self.output_channel = PSM_features * self.depth_channel
     @profile("Cost Volume", 1, 10)
     def forward(self, left_features, right_features):
+        # import pdb
+        # pdb.set_trace()
+        
         batch_size, _, w, h = left_features.shape
         left_features = self.down_sample(left_features)
         right_features = self.down_sample(right_features)
@@ -79,11 +84,13 @@ class PSMCosineModule(nn.Module):
 
     @profile("PSM Cos Volume", 1, 20)
     def forward(self, left_features, right_features):
+        # print('shape of left_features', left_features.shape)
         cost = Variable(
             torch.FloatTensor(left_features.size()[0],
                               self.depth_channel,
-                              left_features.size()[2],  
-                              left_features.size()[3]).zero_(), 
+                              left_features.size()[2],
+                              left_features.size()[3]).zero_(),
+                            #   left_features.size()[3] 
             volatile= not self.training
         ).cuda()
 

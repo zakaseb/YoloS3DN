@@ -13,6 +13,8 @@ import logging
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+import wandb
+import yaml
 
 from _path_init import *
 from visualDet3D.networks.utils.registry import DETECTOR_DICT, DATASET_DICT, PIPELINE_DICT
@@ -35,6 +37,7 @@ def main(config="config/config.py", experiment_name="default", world_size=1, loc
 
     ## Get config
     cfg = cfg_from_file(config)
+    wandb.init(project='YoloS3DN_Edgnext_Small_bn_hs_Pretrained_Network__ChenSplit_PC_Supervision')
 
     ## Collect distributed(or not) information
     cfg.dist = EasyDict()
@@ -70,6 +73,8 @@ def main(config="config/config.py", experiment_name="default", world_size=1, loc
     if is_distributed:
         torch.distributed.init_process_group(backend='nccl', init_method='env://')
     print(local_rank)
+
+    wandb.config.update(cfg)
  
     ## define datasets and dataloader.
     dataset_train = DATASET_DICT[cfg.data.train_dataset](cfg)
@@ -81,6 +86,9 @@ def main(config="config/config.py", experiment_name="default", world_size=1, loc
     dataloader_val = DataLoader(dataset_val, num_workers=cfg.data.num_workers,
                                 batch_size=cfg.data.batch_size, collate_fn=dataset_val.collate_fn, shuffle=False, drop_last=True)
 
+    # import pdb
+    # pdb.set_trace()
+
     ## Create the model
     detector = DETECTOR_DICT[cfg.detector.name](cfg.detector) #found in yolostereo3d_detector
 
@@ -88,7 +96,19 @@ def main(config="config/config.py", experiment_name="default", world_size=1, loc
     old_checkpoint = getattr(cfg.path, 'pretrained_checkpoint', None)
     if old_checkpoint is not None:
         state_dict = torch.load(old_checkpoint, map_location='cpu')
-        detector.load_state_dict(state_dict)
+        if cfg.detector.backbone.pretrained:
+            bb_state_dict = torch.load(cfg.detector.backbone.pretrained_edgenext_path, map_location='cpu')
+            del bb_state_dict['model']['head.bias']
+            del bb_state_dict['model']['head.weight']
+            if cfg.detector.backbone.rand_init_model_except_bb:
+                model_keys = [key for key in state_dict if '.'.join(key.split('.')[2:]) not in bb_state_dict['model']]
+                for key in model_keys:
+                    state_dict.pop(key)
+            else:
+                for key in bb_state_dict['model']:
+                    state_dict['core.backbone.' + key] = bb_state_dict['model'][key]
+
+        detector.load_state_dict(state_dict, strict=False)
 
     ## Convert to cuda
     if is_distributed:
@@ -104,7 +124,8 @@ def main(config="config/config.py", experiment_name="default", world_size=1, loc
         writer.add_text("model structure", string1) # add space for markdown style in tensorboard text
         num_parameters = get_num_parameters(detector)
         print(f'number of trained parameters of the model: {num_parameters}')
-    
+        wandb.config.update({"num_parameters": num_parameters})
+
     ## define optimizer and weight decay
     optimizer = optimizers.build_optimizer(cfg.optimizer, detector)
 
@@ -163,6 +184,13 @@ def main(config="config/config.py", experiment_name="default", world_size=1, loc
                     print(log_str, end='\r')
                     writer.add_text("training_log/train", log_str, global_step)
                     training_loss_logger.log(global_step)
+                
+                wandb.log({
+                    "epoch": epoch_num,
+                    "iteration": iter_num,
+                    "running_loss": training_loss_logger.loss_stats['total_loss'].avg,
+                    "eta": timer.compute_eta(global_step, len(dataloader_train) * cfg.trainer.max_epochs)
+                })
 
         if not is_iter_based:
             scheduler.step()
@@ -192,6 +220,8 @@ def main(config="config/config.py", experiment_name="default", world_size=1, loc
 
         if is_logging:
             writer.flush()
+        
+    wandb.finish()
 
 if __name__ == '__main__':
     Fire(main)

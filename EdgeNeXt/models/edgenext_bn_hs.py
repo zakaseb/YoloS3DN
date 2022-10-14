@@ -7,7 +7,7 @@ from .conv_encoder import ConvEncoderBNHS
 
 
 class EdgeNeXtBNHS(nn.Module):
-    def __init__(self, in_chans=3, num_classes=1000,
+    def __init__(self, in_chans=3, num_classes=2,
                  depths=[3, 3, 9, 3], dims=[96, 192, 384, 768],
                  global_block=[0, 0, 0, 3], global_block_type=['None', 'None', 'None', 'SDTA_BN_HS'],
                  drop_path_rate=0., layer_scale_init_value=1e-6, head_init_scale=1., expan_ratio=4,
@@ -28,7 +28,7 @@ class EdgeNeXtBNHS(nn.Module):
             nn.BatchNorm2d(dims[0])
         )
         self.downsample_layers.append(stem)
-        for i in range(3):
+        for i in range(2):
             downsample_layer = nn.Sequential(
                 nn.BatchNorm2d(dims[i]),
                 nn.Conv2d(dims[i], dims[i + 1], kernel_size=2, stride=2, bias=False),
@@ -38,7 +38,7 @@ class EdgeNeXtBNHS(nn.Module):
         self.stages = nn.ModuleList()  # 4 feature resolution stages, each consisting of multiple residual blocks
         dp_rates = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
         cur = 0
-        for i in range(4):
+        for i in range(3):
             stage_blocks = []
             for j in range(depths[i]):
                 if j > depths[i] - global_block[i] - 1:
@@ -57,12 +57,13 @@ class EdgeNeXtBNHS(nn.Module):
             self.stages.append(nn.Sequential(*stage_blocks))
             cur += depths[i]
         self.norm = nn.BatchNorm2d(dims[-1])
-        self.head = nn.Linear(dims[-1], num_classes)
+        # self.head = nn.Linear(dims[-1], num_classes)  #commented out for loading when backbone is pretrained
 
         self.apply(self._init_weights)
-        self.head_dropout = nn.Dropout(kwargs["classifier_dropout"])
-        self.head.weight.data.mul_(head_init_scale)
-        self.head.bias.data.mul_(head_init_scale)
+        # self.head_dropout = nn.Dropout(kwargs["classifier_dropout"]) #commented out for loading when backbone is pretrained
+        # self.head.weight.data.mul_(head_init_scale) #commented out for loading when backbone is pretrained
+        # self.head.bias.data.mul_(head_init_scale) #commented out for loading when backbone is pretrained
+
 
     def _init_weights(self, m):  # TODO: MobileViT is using 'kaiming_normal' for initializing conv layers
         if isinstance(m, (nn.Conv2d, nn.Linear)):
@@ -74,17 +75,24 @@ class EdgeNeXtBNHS(nn.Module):
             nn.init.constant_(m.weight, 1.0)
 
     def forward_features(self, x):
+        outs =[]
         x = self.downsample_layers[0](x)
         x = self.stages[0](x)
+        outs.append(x)
+
         if self.pos_embd:
             B, C, H, W = x.shape
             x = x + self.pos_embd(B, H, W)
-        for i in range(1, 4):
+        for i in range(1, 3):
             x = self.downsample_layers[i](x)
             x = self.stages[i](x)
-        return self.norm(x).mean([-2, -1])
+            outs.append(x)
+    
+        return outs 
+
+        # return self.norm(x).mean([-2, -1])
 
     def forward(self, x):
         x = self.forward_features(x)
-        x = self.head(self.head_dropout(x))
+        # x = self.head(self.head_dropout(x))
         return x

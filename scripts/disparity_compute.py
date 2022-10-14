@@ -9,6 +9,7 @@ from typing import List, Dict, Tuple
 from copy import deepcopy
 import skimage.measure
 import torch
+import random
 
 from _path_init import *
 from visualDet3D.networks.heads.anchors import Anchors
@@ -28,6 +29,9 @@ def denorm(image:np.ndarray, rgb_mean:np.ndarray, rgb_std:np.ndarray)->np.ndarra
         Returns:
             unnormalized image: np.ndarray (H, W, 3) [0-255] dtype=np.uint8
     """
+    f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+    f.write("disparity_denorm \n")
+    f.close()
     image = image * rgb_std + rgb_mean #
     image[image > 1] = 1
     image[image < 0] = 0
@@ -35,6 +39,9 @@ def denorm(image:np.ndarray, rgb_mean:np.ndarray, rgb_std:np.ndarray)->np.ndarra
     return np.array(image, dtype=np.uint8)
 
 def process_train_val_file(cfg)-> Tuple[List[str], List[str]]:
+    f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+    f.write("disparity_process_train_val \n")
+    f.close()
     train_file = cfg.data.train_split_file
     val_file   = cfg.data.val_split_file
 
@@ -57,6 +64,9 @@ def compute_dispairity_for_split(cfg,
                                  data_split:str='training', 
                                  time_display_inter:int=100, 
                                  use_point_cloud:bool=True):
+    f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+    f.write("compute_disparity_for_split\n")
+    f.close()
     save_dir = os.path.join(cfg.path.preprocessed_path, data_split)
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir) #saving in dir and if not found then make dir
@@ -124,6 +134,9 @@ def main(config:str="config/config.py",use_point_cloud:bool=False):
     config_file(str): path to the config file.
     use_point_cloud(bool):  whether use OpenCV or point cloud to construct disparity ground truth.
     """
+    f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+    f.write("disparity main\n")
+    f.close()
     cfg = cfg_from_file(config)
     torch.cuda.set_device(cfg.trainer.gpu)
     time_display_inter = 100 # define the inverval displaying time consumed in loop

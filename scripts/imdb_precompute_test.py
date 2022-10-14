@@ -1,17 +1,20 @@
-from copy import deepcopy
-import torch
-import cv2
-import time
-import pickle
-import os
-import numpy as np
 import ctypes
+import os
+import pickle
+import time
+from copy import deepcopy
 
-from _path_init import *
+import cv2
+import numpy as np
+import torch
+import sys, os
+sys.path.append(os.path.abspath(os.path.join('..', '/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/')))
+from visualDet3D.data.kitti.kittidata import KittiData
 from visualDet3D.utils.timer import Timer
 from visualDet3D.utils.utils import cfg_from_file
-from visualDet3D.data.kitti.kittidata import KittiData
+import random
 
+from _path_init import *
 
 
 def read_one_split(cfg, index_names, data_root_dir, output_dict, data_split='training', time_display_inter=100):
@@ -64,6 +67,12 @@ def main(config="config/config.py"):
 
     num_test_file = N
     test_names = ["%06d" % i for i in range(num_test_file)]
+    # if cfg.data.shuffle_split:
+    #     test_names = ["%06d" % i for i in range(num_test_file)]
+    #     # all_names = train_names + val_names
+    #     random.shuffle(test_names)
+    #     # train_names = all_names[:3712]
+    #     # val_names = all_names[3712:]
     read_one_split(cfg, test_names, data_root_dir, output_dict,
                    'test', time_display_inter)
 

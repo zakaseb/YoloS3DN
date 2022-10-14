@@ -12,6 +12,9 @@ class Anchors(nn.Module):
                        readConfigFile:int=1, obj_types:List[str]=[],
                        filter_anchors:bool=True, filter_y_threshold_min_max:Optional[Tuple[float, float]]=(-0.5, 1.8), filter_x_threshold:Optional[float]=40.0,
                        anchor_prior_channel=6):
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("anchor_init \n")
+        f.close()
         super(Anchors, self).__init__()
 
         self.pyramid_levels = pyramid_levels
@@ -47,6 +50,9 @@ class Anchors(nn.Module):
             computations in numpy: anchors[N, 4]
             return: sizes_int [N,]  ratio_ints [N, ]
         """
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("anchor_init_anchors2indexes \n")
+        f.close()
         sizes = np.sqrt((anchors[:, 2] - anchors[:, 0]) * (anchors[:, 3] - anchors[:, 1]))
         sizes_diff = sizes - (np.array(self.sizes) * np.array(self.scales))[:, np.newaxis]
         sizes_int = np.argmin(np.abs(sizes_diff), axis=0)
@@ -57,6 +63,9 @@ class Anchors(nn.Module):
         return sizes_int, ratio_int
 
     def forward(self, image:torch.Tensor, calibs:List[np.ndarray]=[], is_filtering=False):
+        f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+        f.write("anchor_init_forward \n")
+        f.close()       
         shape = image.shape[2:]
         if self.shape is None or not (shape == self.shape):
             self.shape = image.shape[2:]
@@ -102,6 +111,8 @@ class Anchors(nn.Module):
             cy = P2[:, 1:2, 2:3] #[B,1, 1]
             cx = P2[:, 0:1, 2:3] #[B,1, 1]
             N = self.anchors.shape[1]
+            # import pdb
+            # pdb.set_trace()
             if self.readConfigFile and is_filtering:
                 anchors_z = self.anchor_means[:, :, 0] #[types, N]
                 world_x3d = (self.anchors_image_x_center * anchors_z - anchors_z.new(cx) * anchors_z) / anchors_z.new(fy) #[B, types, N]
@@ -109,12 +120,20 @@ class Anchors(nn.Module):
                 self.useful_mask = torch.any( (world_y3d > self.filter_y_threshold_min_max[0]) * 
                                               (world_y3d < self.filter_y_threshold_min_max[1]) *
                                               (world_x3d.abs() < self.filter_x_threshold), dim=1)  #[B,N] any one type lies in target range
+                # import pdb 
+                # pdb.set_trace()
             else:
                 self.useful_mask = torch.ones([len(P2), N], dtype=torch.bool, device="cuda")
+                # import pdb
+                # pdb.set_trace()
             if self.readConfigFile:
                 return self.anchors, self.useful_mask, self.anchor_mean_std
+                # import pdb
+                # pdb.set_trace()
             else:
                 return self.anchors, self.useful_mask
+                # import pdb
+                # pdb.set_trace()
         return self.anchors
 
     @property
@@ -154,7 +173,9 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
     Generate anchor (reference) windows by enumerating aspect ratios X
     scales w.r.t. a reference window.
     """
-
+    f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+    f.write("generate_anchors \n")
+    f.close()
     if ratios is None:
         ratios = np.array([0.5, 1, 2])
 
@@ -189,6 +210,9 @@ def compute_shape(image_shape, pyramid_levels):
     :param pyramid_levels:
     :return:
     """
+    f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+    f.write("anchors: compute_shape \n")
+    f.close()
     image_shape = np.array(image_shape[:2])
     image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in pyramid_levels]
     return image_shapes
@@ -203,7 +227,9 @@ def anchors_for_shape(
     sizes=None,
     shapes_callback=None,
 ):
-
+    f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+    f.write("anchors_for_shape \n")
+    f.close()
     image_shapes = compute_shape(image_shape, pyramid_levels)
 
     # compute anchors over all pyramid levels
@@ -217,6 +243,9 @@ def anchors_for_shape(
 
 
 def shift(shape, stride, anchors):
+    f = open("/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Sequence.txt", "a")
+    f.write("anchor_shift \n")
+    f.close()
     shift_x = (np.arange(0, shape[1]) + 0.5) * stride
     shift_y = (np.arange(0, shape[0]) + 0.5) * stride
 

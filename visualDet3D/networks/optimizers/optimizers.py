@@ -11,4 +11,8 @@ def build_optimizer(optim_cfg:EasyDict, model:nn.Module):
         return optim.Adam(model.parameters(), **(optim_cfg.keywords))
     if optim_cfg.type_name.lower() == 'adamw':
         return optim.AdamW(model.parameters(), **(optim_cfg.keywords))
+    if optim_cfg.type_name.lower() == 'rmsprop':
+        return optim.RMSprop(model.parameters(), **(optim_cfg.keywords))
+    if optim_cfg.type_name.lower() == 'adagrad':
+        return optim.Adagrad(model.parameters(), **(optim_cfg.keywords))
     raise NotImplementedError(optim_cfg)

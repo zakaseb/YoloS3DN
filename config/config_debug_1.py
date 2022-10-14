@@ -112,15 +112,15 @@ cfg.data = data
 detector = edict()
 detector.obj_types = cfg.obj_types
 detector.name = 'Stereo3D'
-detector.backbone = edict(
-    depth=34,
-    pretrained=True,
-    frozen_stages=-1,
-    num_stages=3,
-    out_indices=(0, 1, 2),
-    norm_eval=True,
-    dilations=(1, 1, 1),
-)
+# detector.backbone = edict(
+#     depth=34,
+#     pretrained=True,
+#     frozen_stages=-1,
+#     num_stages=3,
+#     out_indices=(0, 1, 2),
+#     norm_eval=True,
+#     dilations=(1, 1, 1),
+# )
 head_loss = edict(
     fg_iou_threshold = 0.5,
     bg_iou_threshold = 0.4,
