@@ -1,9 +1,33 @@
-# Visual 3D Detection Package:
+# YoloS3DN: Towards Low-Latency ViT-Powered Stereo 3D Object Detection.
+
+## Abstract:
+
+Stereo 3D Object Detection has been an ever-growing challenge in the field of Computer
+Vision, specifically because of its role in deploying Autonomous Driving solutions
+that are computationally lightweight, fast, and accurate. This task is particularly
+challenging for models that utilize point cloud for their disparity estimation for depth 3D
+reconstruction. Moreover, Vision Transformers have recently started outperforming CNNs
+in image classification tasks, all whilst consuming fewer resources with fewer parameters
+and FLOPs. To this end, YoloS3DN is proposed, a lightweight, real-time capable iteration
+of YoloStereo3D with a Vision Transformer backbone inspired from EdgeNeXt. This network scales back into the
+2D object detection while reinforcing them with stereo features. This model was trained
+on a single NVIDIA RTX 3090 GPU on the KITTI Stereo Dataset and validated on the 3D
+Object Detection Benchmark of 2017. Ablation and comparative experiments display
+experimental, comparative, and qualitative results with superior performance in inference
+speed and state-of-the-art comparable performance in accuracy. The advancements in
+this field push innovation towards Stereo-based Object detection in real-time and real-world
+autonomous driving and Robotics solutions.
+
+## Method Architecture:
+
+This method is inspired from YoloStereo3D by Liu et al, and EdgeNeXt by Maaz et al. The paper will be made available upon acceptance of publication. The architecture is found below:
+
+
 
 This repo aims to provide flexible and reproducible visual 3D detection on KITTI dataset. We expect scripts starting from the current directory, and treat ./visualDet3D as a package that we could modify and test directly instead of a library. Several useful scripts are provided in the main directory for easy usage.
 
 We believe that visual tasks are interconnected, so we make this library extensible to more experiments. 
-The package uses registry to register datasets, models, processing functions and more, allowing easy inserting of new tasks/models while not interfere with the existing ones.
+The package uses registry to register datasets, models, processing functions and more, allowing easy inserting of new tasks/mlOW odels while not interfere with the existing ones.
 
 ## Related Paper:
 
