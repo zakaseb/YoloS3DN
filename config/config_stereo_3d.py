@@ -24,8 +24,8 @@ path = edict()
 path.data_path = "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Training" # used in visualDet3D/data/.../dataset
 path.test_path = "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Testing" # used in visualDet3D/data/.../dataset
 path.visualDet3D_path = "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/visualDet3D" # The path should point to the inner subfolder
-path.project_path = "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Project" # or other path for pickle files, checkpoints, tensorboard logging and output files.
-path.pretrained_checkpoint = '/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/ckpts/checkpts/YoloS3DN_Edgnext_Small_bn_hs_Pretrained_Backbone_17epochs_Nottrained_Network__ChenSplit_NotShuffled.pth' # /home/zakaseb/Thesis/YoloStereo3D/Stereo3D/ckpts/checkpts/YoloS3DN_Edgnext_Small__Pretrained_Backbone_17epochs_NotPretrained_Network__ChenSplit_NotShuffled.pth for SMALL. /home/zakaseb/Thesis/YoloStereo3D/Stereo3D/ckpts/checkpts/YoloS3DN_Edgnext_Small_bn_hs_Pretrained_Backbone_17epochs_Nottrained_Network__ChenSplit_NotShuffled.pth for SMALL BN_HS
+path.project_path = "/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/Project" # or other path for pickle files, checkpoints, tensorboard logging and output files. Put output files here under project/stereo3D/output
+path.pretrained_checkpoint = '/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/ckpts/checkpts/YoloS3DN_Edgnext_Small_bn_hs_Pretrained_Backbone_17epochs_Nottrained_Network__ChenSplit_NotShuffled.pth' # Insert checkpoint here, 
 if not os.path.isdir(path.project_path):
     os.mkdir(path.project_path)
 path.project_path = os.path.join(path.project_path, 'Stereo3D')
@@ -139,10 +139,10 @@ detector.backbone = edict(
     kernel_sizes=[3, 5, 7, 9],
     d2_scales=[2, 2, 3, 4],
     classifier_dropout=0.0,
-    edgenext_variant='small_bn_hs', #options = ['small', 'small_bn_hs']
+    edgenext_variant='small', #options = ['small', 'small_bn_hs']
     pretrained=False,
     pretrained_edgenext_path='/home/zakaseb/Thesis/YoloStereo3D/Stereo3D/EdgeNeXt/checkpoint-small-17-epochs.pth', # /home/zakaseb/Thesis/YoloStereo3D/Stereo3D/EdgeNeXt/checkpoint-edgnext-bn-hs-17-epochs.pth for SMALL BN HS, /home/zakaseb/Thesis/YoloStereo3D/Stereo3D/EdgeNeXt/checkpoint-small-17-epochs.pth for SMALL 
-    rand_init_model_except_bb=True # False for exp1 and True for exp2
+    rand_init_model_except_bb=False # False for exp1 and True for exp2
     )
 
 # detector.backbone = edict(
