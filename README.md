@@ -23,6 +23,10 @@ autonomous driving and Robotics solutions.
 This method is inspired from YoloStereo3D by Liu et al, and EdgeNeXt by Maaz et al. The paper will be made available upon acceptance of publication. The architecture is found below:
 
 
+![Architecture of YoloS3DN (top) with the architecture of the modified EdgeNext
+backbone(bottom)](https://mbzuaiac-my.sharepoint.com/:i:/g/personal/zakaria_sebaitre_mbzuai_ac_ae/ETuHihVR9x5ImOG_m3TJz1oBDVBJPMcq74nfh3udBsK3UQ)
+![image](https://user-images.githubusercontent.com/45034431/200579644-e1c8f8fe-5530-4f81-96c0-a885531abd5c.png)
+
 
 This repo aims to provide flexible and reproducible visual 3D detection on KITTI dataset. We expect scripts starting from the current directory, and treat ./visualDet3D as a package that we could modify and test directly instead of a library. Several useful scripts are provided in the main directory for easy usage.
 
