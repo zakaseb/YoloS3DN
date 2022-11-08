@@ -16,7 +16,7 @@ Object Detection Benchmark of 2017. Ablation and comparative experiments display
 experimental, comparative, and qualitative results with superior performance in inference
 speed and state-of-the-art comparable performance in accuracy. The advancements in
 this field push innovation towards Stereo-based Object detection in real-time and real-world
-autonomous driving and Robotics solutions.
+autonomous driving and Robotics solutions. The paper will be shared upon acceptance. 
 
 ## Method Architecture:
 
@@ -24,28 +24,12 @@ This method is inspired from YoloStereo3D by Liu et al, and EdgeNeXt by Maaz et 
 
 
 ![Architecture of YoloS3DN (top) with the architecture of the modified EdgeNext
-backbone(bottom)](https://mbzuaiac-my.sharepoint.com/:i:/g/personal/zakaria_sebaitre_mbzuai_ac_ae/ETuHihVR9x5ImOG_m3TJz1oBDVBJPMcq74nfh3udBsK3UQ)
-![image](https://user-images.githubusercontent.com/45034431/200579644-e1c8f8fe-5530-4f81-96c0-a885531abd5c.png)
+backbone(bottom)](https://user-images.githubusercontent.com/45034431/200579644-e1c8f8fe-5530-4f81-96c0-a885531abd5c.png)
 
+This repo aims at improving at the current SOTA of 3D Stereo Object in the KITTI 3D Object Detection benchmark in terms of number of parameters and average inference speeds. 
 
-This repo aims to provide flexible and reproducible visual 3D detection on KITTI dataset. We expect scripts starting from the current directory, and treat ./visualDet3D as a package that we could modify and test directly instead of a library. Several useful scripts are provided in the main directory for easy usage.
-
-We believe that visual tasks are interconnected, so we make this library extensible to more experiments. 
-The package uses registry to register datasets, models, processing functions and more, allowing easy inserting of new tasks/mlOW odels while not interfere with the existing ones.
-
-## Related Paper:
-
-This repo contains the official implementation of 2021 *RAL* \& *ICRA* paper [**Ground-aware Monocular 3D Object Detection for Autonomous Driving**](https://ieeexplore.ieee.org/document/9327478). [Arxiv Page](https://arxiv.org/abs/2102.00690). Pretrained model can be found at [release pages](https://github.com/Owen-Liuyuxuan/visualDet3D/releases/tag/1.0).
-```
-@ARTICLE{9327478,
-  author={Y. {Liu} and Y. {Yuan} and M. {Liu}},
-  journal={IEEE Robotics and Automation Letters}, 
-  title={Ground-aware Monocular 3D Object Detection for Autonomous Driving}, 
-  year={2021},
-  doi={10.1109/LRA.2021.3052442}}
-```
-
-Also the official implementation of 2021 *ICRA* paper [**YOLOStereo3D: A Step Back to 2D for Efficient Stereo 3D Detection**](https://arxiv.org/abs/2103.09422). Pretrained model can be found at [release pages](https://github.com/Owen-Liuyuxuan/visualDet3D/releases/tag/1.1).
+## Related Papers:
+This repo is inspired from various methods, but more specifically YoloStereo3D, official implementation of 2021 *ICRA* paper [**YOLOStereo3D: A Step Back to 2D for Efficient Stereo 3D Detection**](https://arxiv.org/abs/2103.09422), the repo can be found at https://github.com/Owen-Liuyuxuan/visualDet3D. Additionally, it is based on the official implementation of [**EdgeNeXt: Efficiently Amalgamated CNN-Transformer Architecture for Mobile Vision Applications**]((https://arxiv.org/abs/2206.10589)) which can be found in https://github.com/mmaaz60/EdgeNeXt. Please refer to those papers for further inspriations and clarifications. 
 ```
 @inproceedings{liu2021yolostereo3d,
   title={YOLOStereo3D: A Step Back to 2D for Efficient Stereo 3D Detection},
@@ -56,15 +40,33 @@ Also the official implementation of 2021 *ICRA* paper [**YOLOStereo3D: A Step Ba
 }
 ```
 
-We further incorperate an *Unofficial* re-implementation of **Monocular 3D Detection with Geometric Constraints Embedding and Semi-supervised Training** (KM3D) as a reference on how to integrate with other frameworks. (Notice that the codes are from the [originally official repo](https://github.com/Banconxuan/RTM3D), and we **DO NOT** guarantee a complete re-implementation).
+```
+@misc{https://doi.org/10.48550/arxiv.2206.10589,
+  doi = {10.48550/ARXIV.2206.10589},
+  
+  url = {https://arxiv.org/abs/2206.10589},
+  
+  author = {Maaz, Muhammad and Shaker, Abdelrahman and Cholakkal, Hisham and Khan, Salman and Zamir, Syed Waqas and Anwer, Rao Muhammad and Khan, Fahad Shahbaz},
+  
+  keywords = {Computer Vision and Pattern Recognition (cs.CV), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  
+  title = {EdgeNeXt: Efficiently Amalgamated CNN-Transformer Architecture for Mobile Vision Applications},
+  
+  publisher = {arXiv},
+  
+  year = {2022},
+  
+  copyright = {Creative Commons Attribution 4.0 International}
+}
 
-Update (2021.07.02): We provide an *Unofficial* re-implementation of **Objects are Different: Flexible Monocular 3D Object Detection** (MonoFlex) with few additional codes, based on the KM3D structure. Many of the core codes are from [original official repo](https://github.com/zhangyp15/MonoFlex). We did not implement the edge merge operation and the corner loss, but we manage to maintain most of the performance based on the proposed depth fusion methods(validation AP reaches 15%).
+}
+```
 
-Update (2021.12.11): We provide an *Unofficial* re-implmentation of **Digging Into Output Representation For Monocular 3D Object Detection** (Digging_M3D) to introduce an simple but important numerical trick to significantly improve the KITTI mAP scores and make a significant change to the KITTI leaderboard. Details can be found in the [paper](https://openreview.net/forum?id=mPlm356yMIP). At the time of the open-source, the paper has not been officially published, and we will keep up with the update of the paper.
+
 
 ## Key Features
 
-- **SOTA Performance** State of the art result on visual 3D detection.
+- **SOTA Performance** State of the art results on visual 3D detection in terms of average inference speeds and number of params.
 - **Modular Design** Modular design for dataset, network and running pipelines.
 - **Support Various Task** Compatible with the training and testing of mono/stereo 3D detection and depth prediction.
 - **Distributed & Single GPU** Support training with multiple GPUs.
@@ -72,14 +74,7 @@ Update (2021.12.11): We provide an *Unofficial* re-implmentation of **Digging In
 - **Global Path-based IMDB** Do not need data placed inside the folder, convienient for managing data and code separately.
 
 
-We provide start-up solutions for [Mono3D](docs/mono3d.md), [Stereo3D](docs/stereo3d.md), [Depth Predictions](docs/monoDepth.md) and more (until further publication).
 
-Reference: this repo borrows codes and ideas from [retinanet](https://github.com/yhenon/pytorch-retinanet),
-[mmdetection](https://github.com/open-mmlab/mmdetection),
-[M3D-RPN](https://github.com/garrickbrazil/M3D-RPN),
-[DORN](https://github.com/dontLoveBugs/SupervisedDepthPrediction),
-[EdgeNets](https://github.com/sacmehta/EdgeNets),
-[det3](https://github.com/pyun-ram/FL3D)
 
 ## Setup
 ### Environment setup. 
@@ -87,6 +82,12 @@ Reference: this repo borrows codes and ideas from [retinanet](https://github.com
 ```bash
 pip3 install -r requirement.txt
 ```
+or 
+
+```bash
+conda env create -f ./stereo3D.yaml
+```
+
 or manually check dependencies.
 
 ```bash
@@ -102,10 +103,6 @@ Please check the corresponding task: [Mono3D](docs/mono3d.md), [Stereo3D](docs/s
 
 Please modify the path and other parameters in **config/\*.py**. **config/\*_example** files are templates.
 
-**Notice**:
-*_examples are **NOT** utilized by the code and \*.py under /config is **ignored** by .gitignore.
-
-The content of the selected config file will be recorded in tensorboard at the beginning of training.
 
 **important paths to modify in config** :
 1. cfg.path.data_path: Path to KITTI training data. We expect calib, image_2, image_3, label_2 being the subfolder (directly unzipping the downloaded zips will be fine)
@@ -115,24 +112,25 @@ The content of the selected config file will be recorded in tensorboard at the b
 
 Please check the template's comments and other comments in codes to fully exploit the repo.
 
-## Further Info and Bug Issues
 
-1. Open issues on the repo if you meet troubles or find a bug or have some suggestions.
-2. Email to yliuhb@connect.ust.hk
+```
+## Compute image database and anchors mean/std
+# You can run ./launcher/det_precompute.sh without arguments to see helper documents
+./launcher/det_precompute.sh config/config_stereo_3d.py train
+./launcher/det_precompute.sh config/config_stereo_3d.py test
 
 
-## Other Resources
 
-- [RAM-LAB](https://www.ram-lab.com)
-- [Collections of Papers and Readings](https://owen-liuyuxuan.github.io/papers_reading_sharing.github.io/);
--  [Collection for Mono3D](https://owen-liuyuxuan.github.io/papers_reading_sharing.github.io/3dDetection/RecentCollectionForMono3D/); [Ground-Aware 3D](https://owen-liuyuxuan.github.io/papers_reading_sharing.github.io/3dDetection/GroundAwareConvultion/)
-- [Collection for Stereo3D](https://owen-liuyuxuan.github.io/papers_reading_sharing.github.io/3dDetection/RecentCollectionForStereo3D/); [YOLOStereo3D](https://owen-liuyuxuan.github.io/papers_reading_sharing.github.io/3dDetection/YOLOStereo3D/)
+## run this if disparity map is needed, can be computed with point cloud or openCV BlockMatching
+# You can run ./launcher/disparity_precompute.sh without arguments to see helper documents
+./disparity_precompute.sh config/config_stereo_3d.py $IsUsingPointCloud
 
-## Related Codes
+## train the model with one GPU
+# You can run ./launcher/train.sh without arguments to see helper documents
+./launcher/train.sh  --config/config_stereo_3d.py 0 $experiment_name # validation goes along
 
-- [MMDetection](https://github.com/open-mmlab/mmdetection)
-- [M3D-RPN](https://github.com/garrickbrazil/M3D-RPN)
-- [Retinanet](https://github.com/yhenon/pytorch-retinanet)
-- [DORN](https://github.com/dontLoveBugs/SupervisedDepthPrediction)
-- [det3](https://github.com/pyun-ram/FL3D)
-- [RTM3D](https://github.com/Banconxuan/RTM3D)# YoloS3DN
+## produce validation/test result # we only support single GPU testing
+# You can run ./launcher/eval.sh without arguments to see helper documents
+./launcher/eval.sh --config/config_stereo_3d.py 0 $CHECKPOINT_PATH validation/test
+
+```
